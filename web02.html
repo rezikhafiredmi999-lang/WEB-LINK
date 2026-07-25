@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TokoGakGuna.id - 100 Produk</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-amber-50 font-sans">
+
+    <!-- Header / Navbar -->
+    <header class="bg-purple-700 text-white sticky top-0 z-40 shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-2xl font-black italic">🤪 TokoGakGuna.id</h1>
+            <!-- Indikator Cooldown (Jika Aktif) -->
+            <div id="cooldown-banner" class="hidden bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse">
+                ⏳ Tunggu: <span id="cooldown-timer">60</span>s
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6">
+        
+        <!-- Pencarian Produk -->
+        <div class="mb-6 sticky top-16 z-30">
+            <input type="text" id="search-input" oninput="handleSearch()" placeholder="Cari dari 100 produk..." 
+                class="w-full p-3 border-2 border-purple-200 rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white">
+        </div>
+
+        <!-- Product Grid (100 Produk) -->
+        <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <!-- 100 Produk di-render otomatis di sini -->
+        </div>
+
+    </div>
+
+    <!-- OVERLAY LAYAR TENGAH (MODAL PEMBAYARAN) -->
+    <div id="checkout-modal" class="fixed inset-0 bg-black/60 hidden flex justify-center items-center z-50 p-4">
+        <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl border-4 border-purple-600 relative">
+            
+            <!-- Tombol Close Modal -->
+            <button onclick="closeModal()" class="absolute top-3 right-4 text-gray-400 hover:text-gray-600 font-bold text-2xl">&times;</button>
+
+            <!-- FORM PEMBAYARAN (STEP 1) -->
+            <div id="modal-step-form">
+                <h2 class="text-base font-black text-purple-900 border-b pb-2 mb-3" id="modal-product-title">Nama Produk</h2>
+                
+                <div class="space-y-3">
+                    <!-- GMAIL -->
+                    <div>
+                        <label class="block text-xs font-black text-gray-700 mb-1">GMAIL :</label>
+                        <input type="email" id="input-gmail" placeholder="masukkan@gmail.com" class="w-full p-2.5 border-2 border-purple-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    
+                    <!-- ALAMAT -->
+                    <div>
+                        <label class="block text-xs font-black text-gray-700 mb-1">ALAMAT :</label>
+                        <textarea id="input-alamat" rows="2" placeholder="Masukkan alamat lengkap pengiriman..." class="w-full p-2.5 border-2 border-purple-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                    </div>
+                    
+                    <!-- HARGA & LOGO GRATIS ONGKIR -->
+                    <div class="flex justify-between items-center bg-purple-50 p-3 rounded-xl border border-purple-100 my-2">
+                        <div>
+                            <span class="block text-[10px] text-gray-500 font-bold">HARGA :</span>
+                            <span id="modal-product-price" class="text-purple-900 font-black text-base">Rp 0</span>
+                        </div>
+                        
+                        <!-- Logo Gratis Ongkir -->
+                        <div class="bg-green-500 text-white text-xs font-black px-3 py-1.5 rounded-lg flex items-center gap-1 shadow animate-pulse">
+                            🚚 GRATIS ONGKIR
+                        </div>
+                    </div>
+
+                    <!-- TOMBOL BAYAR SEKARANG -->
+                    <button onclick="processPayment()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-black py-3 rounded-xl shadow-lg transition active:scale-95 text-sm">
+                        BAYAR SEKARANG
+                    </button>
+                </div>
+            </div>
+
+            <!-- ANIMASI LOADING 1% - 100% (STEP 2) -->
+            <div id="modal-step-loading" class="hidden text-center py-8">
+                <h3 class="font-black text-purple-900 mb-2 text-sm">Memproses Pembayaran...</h3>
+                
+                <!-- Angka Persentase -->
+                <div id="loading-percentage" class="text-5xl font-black text-purple-600 mb-4">1%</div>
+                
+                <!-- Progress Bar -->
+                <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden border border-purple-200 p-0.5">
+                    <div id="progress-bar" class="bg-purple-600 h-full rounded-full w-[1%] transition-all duration-75"></div>
+                </div>
+            </div>
+
+            <!-- ANIMASI CENTANG BERHASIL (STEP 3) -->
+            <div id="modal-step-success" class="hidden text-center py-6">
+                <!-- Icon Centang Membal/Bounce -->
+                <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce border-4 border-green-500 shadow-lg">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-black text-green-600 mb-1">Pembayaran Berhasil!</h3>
+                <p class="text-xs text-gray-500 mb-6">Pesanan Anda telah dikonfirmasi dan akan segera dikirim.</p>
+                
+                <button onclick="closeModal()" class="w-full bg-green-500 hover:bg-green-600 text-white font-black py-2.5 rounded-xl transition shadow">
+                    Selesai
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- HALAMAN BARU CHALLENGE (PRODUK #67) -->
+    <div id="page-lelah" class="fixed inset-0 bg-purple-950 text-white hidden flex-col justify-center items-center z-50 p-6 text-center">
+        <h1 class="text-5xl font-black mb-8 border-b-4 border-yellow-400 pb-3 tracking-widest text-yellow-300">MASUK</h1>
+        
+        <p class="text-2xl md:text-3xl font-black mb-12 tracking-wide">APAKAH ANDA LELAH?</p>
+        
+        <div class="flex gap-6 justify-center w-full max-w-xs">
+            <button onclick="handleNoLelah()" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-2xl text-xl shadow-2xl transition active:scale-95 border-2 border-red-400">
+                NO
+            </button>
+            <button onclick="handleYesLelah()" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-black py-4 rounded-2xl text-xl shadow-2xl transition active:scale-95 border-2 border-green-300">
+                YES
+            </button>
+        </div>
+    </div>
+
+    <!-- HALAMAN BARU: JAWAB PERTANYAAN (SOAL 1, 2, 3, 4, 5) -->
+    <div id="page-kuis" class="fixed inset-0 bg-slate-900 text-white hidden flex-col z-50 overflow-y-auto">
+        <div class="container mx-auto px-4 py-8 max-w-3xl">
+            <h1 class="text-2xl md:text-3xl font-black text-yellow-400 border-b-4 border-yellow-500 pb-4 mb-8 text-center tracking-wide">
+                JAWAB PERTANYAAN BERIKUT :
+            </h1>
+
+            <div class="space-y-8">
+                <!-- Soal 1 -->
+                <div class="bg-slate-800 p-5 rounded-2xl border-2 border-slate-700 shadow-xl">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-yellow-400 text-purple-950 font-black px-3 py-1 rounded-lg text-sm">1</span>
+                        <span class="text-xs text-yellow-400 font-bold uppercase tracking-wider">Pertanyaan Pertama</span>
+                    </div>
+                    <p class="text-sm md:text-base font-semibold leading-relaxed text-slate-200 mb-4">
+                        Setiap bilangan bulat genap yang nilainya lebih besar dari angka 2, selalu dapat dinyatakan sebagai hasil penjumlahan dari tepat dua bilangan prima. Contohnya angka 4 adalah 2 + 2, angka 6 adalah 3 + 3, angka 8 adalah 3 + 5, dan seterusnya hingga tak terhingga. Buktikan bahwa pernyataan ini berlaku untuk SEMUA bilangan genap yang ada.
+                    </p>
+                    <label class="block text-xs font-bold text-yellow-400 mb-1">MASUKKAN JAWABAN :</label>
+                    <textarea id="ans-1" oninput="validateQuiz()" rows="3" placeholder="Ketik jawaban pembuktian Anda di sini..." class="w-full p-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-xs md:text-sm text-white focus:outline-none focus:border-yellow-400"></textarea>
+                </div>
+
+                <!-- Soal 2 -->
+                <div class="bg-slate-800 p-5 rounded-2xl border-2 border-slate-700 shadow-xl">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-yellow-400 text-purple-950 font-black px-3 py-1 rounded-lg text-sm">2</span>
+                        <span class="text-xs text-yellow-400 font-bold uppercase tracking-wider">Pertanyaan Kedua</span>
+                    </div>
+                    <p class="text-sm md:text-base font-semibold leading-relaxed text-slate-200 mb-4">
+                        Diketahui fungsi zeta Riemann memiliki banyak akar penyelesaian. Selain akar yang sudah diketahui berupa bilangan bulat negatif genap, dikatakan bahwa seluruh akar lainnya pasti memiliki bagian real yang nilainya persis sama dengan ½. Buktikan bahwa pernyataan ini berlaku untuk semua akar yang jumlahnya tak terhingga.
+                    </p>
+                    <label class="block text-xs font-bold text-yellow-400 mb-1">MASUKKAN JAWABAN :</label>
+                    <textarea id="ans-2" oninput="validateQuiz()" rows="3" placeholder="Ketik jawaban pembuktian Anda di sini..." class="w-full p-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-xs md:text-sm text-white focus:outline-none focus:border-yellow-400"></textarea>
+                </div>
+
+                <!-- Soal 3 -->
+                <div class="bg-slate-800 p-5 rounded-2xl border-2 border-slate-700 shadow-xl">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-yellow-400 text-purple-950 font-black px-3 py-1 rounded-lg text-sm">3</span>
+                        <span class="text-xs text-yellow-400 font-bold uppercase tracking-wider">Pertanyaan Ketiga</span>
+                    </div>
+                    <p class="text-sm md:text-base font-semibold leading-relaxed text-slate-200 mb-4">
+                        Bilangan prima kembar adalah dua bilangan prima yang selisihnya hanya 2, misalnya 3 dan 5, 11 dan 13, 101 dan 103. Dikatakan bahwa pasangan semacam ini jumlahnya tak terhingga, tidak akan habis meski kita terus mencari ke angka yang sangat besar. Buktikan kebenarannya.
+                    </p>
+                    <label class="block text-xs font-bold text-yellow-400 mb-1">MASUKKAN JAWABAN :</label>
+                    <textarea id="ans-3" oninput="validateQuiz()" rows="3" placeholder="Ketik jawaban pembuktian Anda di sini..." class="w-full p-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-xs md:text-sm text-white focus:outline-none focus:border-yellow-400"></textarea>
+                </div>
+
+                <!-- Soal 4 -->
+                <div class="bg-slate-800 p-5 rounded-2xl border-2 border-slate-700 shadow-xl">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-yellow-400 text-purple-950 font-black px-3 py-1 rounded-lg text-sm">4</span>
+                        <span class="text-xs text-yellow-400 font-bold uppercase tracking-wider">Pertanyaan Keempat</span>
+                    </div>
+                    <p class="text-sm md:text-base font-semibold leading-relaxed text-slate-200 mb-4">
+                        Jika kebenaran suatu jawaban atas sebuah soal dapat diperiksa dengan waktu yang sangat singkat oleh komputer, apakah berarti soal itu sendiri pasti bisa dicari jawabannya dengan waktu yang sama singkatnya? Apakah kelas soal yang mudah diperiksa itu sama persis dengan kelas soal yang mudah diselesaikan?
+                    </p>
+                    <label class="block text-xs font-bold text-yellow-400 mb-1">MASUKKAN JAWABAN :</label>
+                    <textarea id="ans-4" oninput="validateQuiz()" rows="3" placeholder="Ketik jawaban pembuktian Anda di sini..." class="w-full p-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-xs md:text-sm text-white focus:outline-none focus:border-yellow-400"></textarea>
+                </div>
+
+                <!-- Soal 5 -->
+                <div class="bg-slate-800 p-5 rounded-2xl border-2 border-slate-700 shadow-xl">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-yellow-400 text-purple-950 font-black px-3 py-1 rounded-lg text-sm">5</span>
+                        <span class="text-xs text-yellow-400 font-bold uppercase tracking-wider">Pertanyaan Kelima</span>
+                    </div>
+                    <p class="text-sm md:text-base font-semibold leading-relaxed text-slate-200 mb-4">
+                        Ambil bilangan bulat positif apa saja. Jika genap, bagilah dengan 2. Jika ganjil, kalikan dengan 3 lalu tambah 1. Ulangi proses ini terus-menerus pada hasil yang didapat. Dikatakan bahwa berapapun angka awalnya, barisan bilangan ini pasti akan selalu sampai ke angka 1. Buktikan hal ini tidak pernah gagal untuk semua bilangan.
+                    </p>
+                    <label class="block text-xs font-bold text-yellow-400 mb-1">MASUKKAN JAWABAN :</label>
+                    <textarea id="ans-5" oninput="validateQuiz()" rows="3" placeholder="Ketik jawaban pembuktian Anda di sini..." class="w-full p-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-xs md:text-sm text-white focus:outline-none focus:border-yellow-400"></textarea>
+                </div>
+            </div>
+
+            <!-- Tombol SELANJUTNYA -->
+            <div class="mt-10 mb-8 text-center">
+                <button id="btn-selanjutnya" disabled onclick="handleFinishQuiz()" 
+                    class="w-full md:w-1/2 py-4 rounded-2xl font-black text-lg transition shadow-xl bg-gray-600 text-gray-400 cursor-not-allowed">
+                    SELANJUTNYA
+                </button>
+                <p id="quiz-hint" class="text-xs text-yellow-400/80 mt-2 italic">
+                    *Isi semua 5 jawaban di atas agar tombol SELANJUTNYA dapat ditekan.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- HALAMAN BARU: PILIH PAKET -->
+    <div id="page-paket" class="fixed inset-0 bg-purple-950 text-white hidden flex-col justify-center items-center z-50 p-6 overflow-y-auto">
+        <div class="w-full max-w-md text-center">
+            <h1 class="text-3xl md:text-4xl font-black text-yellow-400 mb-8 border-b-4 border-yellow-500 pb-3 tracking-wider">
+                PILIH PAKET
+            </h1>
+
+            <div class="space-y-4">
+                <!-- PAKET PRO -->
+                <div onclick="selectPackage('PRO')" class="w-full bg-purple-900 border-2 border-purple-400 hover:border-yellow-400 rounded-2xl p-5 flex items-center justify-between cursor-pointer transition transform hover:scale-105 shadow-2xl group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center text-2xl font-black border-2 border-blue-400 group-hover:bg-blue-500 group-hover:text-white transition">
+                            ⚡
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-xl font-black text-white group-hover:text-yellow-300">PRO</h3>
+                            <p class="text-xs text-purple-200">Akses Produk Spesial</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black bg-blue-500 group-hover:bg-yellow-400 group-hover:text-purple-950 text-white px-4 py-2 rounded-xl transition">
+                        PILIH
+                    </span>
+                </div>
+
+                <!-- PAKET PREMIUM -->
+                <div onclick="selectPackage('PREMIUM')" class="w-full bg-purple-900 border-2 border-amber-400 hover:border-yellow-300 rounded-2xl p-5 flex items-center justify-between cursor-pointer transition transform hover:scale-105 shadow-2xl group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-2xl font-black border-2 border-amber-400 group-hover:bg-amber-400 group-hover:text-purple-950 transition">
+                            👑
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-xl font-black text-yellow-300">PREMIUM</h3>
+                            <p class="text-xs text-purple-200">Akses Tanpa Batas</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black bg-amber-400 group-hover:bg-yellow-300 text-purple-950 px-4 py-2 rounded-xl transition">
+                        PILIH
+                    </span>
+                </div>
+
+                <!-- PAKET ULTIMATE -->
+                <div onclick="selectPackage('ULTIMATE')" class="w-full bg-purple-900 border-2 border-red-500 hover:border-yellow-400 rounded-2xl p-5 flex items-center justify-between cursor-pointer transition transform hover:scale-105 shadow-2xl group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-red-500/20 text-red-400 rounded-xl flex items-center justify-center text-2xl font-black border-2 border-red-500 group-hover:bg-red-500 group-hover:text-white transition">
+                            🚀
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-xl font-black text-red-400 group-hover:text-yellow-300">ULTIMATE</h3>
+                            <p class="text-xs text-purple-200">Tingkat Tertinggi Sultan</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black bg-red-500 group-hover:bg-yellow-400 group-hover:text-purple-950 text-white px-4 py-2 rounded-xl transition">
+                        PILIH
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HALAMAN BARU: PEMUTAR AUDIO FITUR PAKET -->
+    <div id="page-audio" class="fixed inset-0 bg-purple-950 text-white hidden flex-col justify-center items-center z-50 p-6">
+        <div class="w-full max-w-md bg-purple-900 border-4 border-yellow-400 rounded-3xl p-6 text-center shadow-2xl flex flex-col items-center">
+            
+            <h2 id="audio-package-title" class="text-2xl font-black text-yellow-300 mb-6 uppercase tracking-wide">
+                PAKET PRO
+            </h2>
+
+            <!-- KOTAK PERSEGI PANJANG PEMUTAR AUDIO CUSTOM -->
+            <div class="w-full bg-slate-900 border-2 border-purple-400 rounded-2xl p-4 flex items-center gap-4 shadow-inner mb-6">
+                <!-- Status Icon Play/Speaker -->
+                <div id="btn-play-audio" class="w-14 h-14 bg-yellow-400 text-purple-950 rounded-xl flex items-center justify-center text-2xl font-black shadow shrink-0">
+                    🔊
+                </div>
+
+                <div class="flex-1 text-left overflow-hidden">
+                    <p class="text-xs font-black text-yellow-400 truncate">🎵 Audio Verifikasi Spesial</p>
+                    <p id="audio-status-text" class="text-[11px] text-gray-300 mt-0.5">Memutar...</p>
+                    
+                    <!-- Indikator Progress Visual Sederhana (Read-only) -->
+                    <div class="w-full bg-gray-700 h-2 rounded-full mt-2 overflow-hidden">
+                        <div id="audio-progress-bar" class="bg-yellow-400 h-full w-0 transition-all duration-200"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATISTIK JUMLAH PEMUTARAN -->
+            <div class="bg-purple-950 border border-purple-800 rounded-xl px-4 py-2 mb-6 text-center">
+                <span id="audio-counter-text" class="text-sm font-black text-yellow-300">0 / 3</span>
+            </div>
+
+            <!-- TOMBOL CONTINUE (Awalnya tersembunyi) -->
+            <button id="btn-continue" onclick="handleContinueAudio()" class="hidden w-full bg-green-500 hover:bg-green-400 text-purple-950 font-black py-4 rounded-2xl text-lg shadow-xl transition active:scale-95 border-2 border-green-300 animate-bounce">
+                CONTINUE ➔
+            </button>
+        </div>
+    </div>
+
+    <!-- HALAMAN BARU: BERHASIL -->
+    <div id="page-berhasil" class="fixed inset-0 bg-slate-900 text-white hidden flex-col justify-center items-center z-50 p-6 text-center">
+        <!-- Icon Centang Membal/Bounce -->
+        <div class="w-32 h-32 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce border-4 border-green-400 shadow-2xl">
+            <svg class="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-black text-green-400 mb-2 tracking-wider">
+            BERHASIL
+        </h1>
+        <p class="text-sm md:text-base text-gray-300 max-w-sm mb-8 font-medium">
+            Seluruh tantangan telah diselesaikan! Pesanan Anda telah resmi terverifikasi.
+        </p>
+
+        <button onclick="location.reload()" class="bg-yellow-400 hover:bg-yellow-300 text-purple-950 font-black px-8 py-3.5 rounded-2xl text-base shadow-xl transition active:scale-95">
+            Kembali ke Beranda
+        </button>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        // Generator Data 100 Produk
+        const items = ["Garpu", "Kacamata", "Sandal", "Kipas Angin", "Bantal", "Remote TV", "Payung", "Helm", "Cangkir", "Kaos Kaki", "Piring", "Pintu", "Sepatu", "Jam Tangan", "Kaos", "Botol Minum", "Ember", "Sendok", "Sisir", "Topi", "Celana", "Buku"];
+        const quirks = ["Tanpa Lubang", "Tenaga Angin Sendiri", "Khusus Kaki Kiri", "Anti Senyum", "Suara Tokek", "Bercahaya Saat Terang", "Bisa Bicara Bahasa Bebek", "Berat 10 Kg", "Transparan Permanen", "Otomatis Basah", "Hanya Bisa Dipakai Hari Selasa", "Mengeluarkan Bau Bawang", "Kurang Berguna", "Tanpa Fungsi Utama", "Pendeteksi Hantu Fake"];
+
+        const products = [];
+        for (let i = 1; i <= 100; i++) {
+            const item = items[i % items.length];
+            const quirk = quirks[i % quirks.length];
+            const price = (Math.floor(Math.random() * 45) + 5) * 5000;
+
+            products.push({
+                id: i,
+                name: `${item} ${quirk} #${i}`,
+                price: price,
+                image: `https://picsum.photos/seed/useless_${i}/300/200`
+            });
+        }
+
+        let filteredProducts = [...products];
+        let currentProduct = null;
+        let cooldownEndTime = 0; // Waktu kedaluwarsa penalti 1 menit
+
+        // System Audio Player Variable
+        let selectedPackageName = "";
+        let requiredAudioLoops = 0;
+        let currentAudioCount = 0;
+
+        // Nama File MP3 untuk Autoplay
+        // Pastikan simpan file lagu Crayon Shinchan Anda dengan nama "shinchan_theme.mp3" di folder yang sama
+        const audioSource = "shinchan_theme.mp3";
+        const bgAudio = new Audio(audioSource);
+
+        // Render 100 Produk
+        function renderProducts() {
+            const grid = document.getElementById("product-grid");
+            grid.innerHTML = "";
+
+            if (filteredProducts.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500 font-bold">Produk tidak ditemukan.</div>`;
+                return;
+            }
+
+            filteredProducts.forEach(p => {
+                grid.innerHTML += `
+                    <div class="bg-white rounded-2xl border-2 ${p.id === 67 ? 'border-red-500 ring-2 ring-red-300' : 'border-purple-100'} shadow overflow-hidden flex flex-col justify-between">
+                        <div class="relative">
+                            <img src="${p.image}" alt="${p.name}" loading="lazy" class="w-full h-36 object-cover bg-gray-100">
+                            <span class="absolute top-2 left-2 text-[10px] ${p.id === 67 ? 'bg-red-600 text-white' : 'bg-purple-900/80 text-yellow-300'} font-bold px-2 py-0.5 rounded-full">
+                                #${p.id}
+                            </span>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-black text-gray-800 text-xs leading-tight">${p.name}</h3>
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-gray-100">
+                                <p class="text-purple-700 font-black text-sm mb-2">Rp ${p.price.toLocaleString('id-ID')}</p>
+                                <button onclick="openModal(${p.id})" class="w-full ${p.id === 67 ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'} text-white text-xs font-black py-2 rounded-xl transition shadow active:scale-95">
+                                    BELI
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Search Filter
+        function handleSearch() {
+            const query = document.getElementById("search-input").value.toLowerCase();
+            filteredProducts = products.filter(p => p.name.toLowerCase().includes(query));
+            renderProducts();
+        }
+
+        // Buka Modal Pembayaran
+        function openModal(id) {
+            currentProduct = products.find(p => p.id === id);
+            
+            document.getElementById("modal-product-title").innerText = currentProduct.name;
+            document.getElementById("modal-product-price").innerText = `Rp ${currentProduct.price.toLocaleString('id-ID')}`;
+            
+            document.getElementById("modal-step-form").classList.remove("hidden");
+            document.getElementById("modal-step-loading").classList.add("hidden");
+            document.getElementById("modal-step-success").classList.add("hidden");
+
+            document.getElementById("input-gmail").value = "";
+            document.getElementById("input-alamat").value = "";
+
+            document.getElementById("checkout-modal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("checkout-modal").classList.add("hidden");
+        }
+
+        // Cek Status Cooldown 1 Menit
+        function checkCooldown() {
+            const now = Date.now();
+            if (now < cooldownEndTime) {
+                return Math.ceil((cooldownEndTime - now) / 1000);
+            }
+            return 0;
+        }
+
+        // Update Timer di Header
+        setInterval(() => {
+            const sisa = checkCooldown();
+            const banner = document.getElementById("cooldown-banner");
+            const timerText = document.getElementById("cooldown-timer");
+            if (sisa > 0) {
+                banner.classList.remove("hidden");
+                timerText.innerText = sisa;
+            } else {
+                banner.classList.add("hidden");
+            }
+        }, 1000);
+
+        // Tombol BAYAR SEKARANG
+        function processPayment() {
+            const gmail = document.getElementById("input-gmail").value;
+            const alamat = document.getElementById("input-alamat").value;
+
+            if (!gmail || !alamat) {
+                alert("Harap isi GMAIL dan ALAMAT terlebih dahulu!");
+                return;
+            }
+
+            // Cek Penalti 1 Menit
+            const sisaCooldown = checkCooldown();
+            if (sisaCooldown > 0) {
+                alert(`⚠️ AKSI DITOLAK!\n\nAnda harus menunggu ${sisaCooldown} detik lagi sebelum dapat melakukan pembayaran.`);
+                return;
+            }
+
+            // Khusus Produk #67
+            if (currentProduct && currentProduct.id === 67) {
+                closeModal();
+                document.getElementById("page-lelah").classList.remove("hidden");
+                document.getElementById("page-lelah").classList.add("flex");
+                return;
+            }
+
+            // Produk Normal (1% -> 100%)
+            document.getElementById("modal-step-form").classList.add("hidden");
+            document.getElementById("modal-step-loading").classList.remove("hidden");
+
+            let progress = 1;
+            const percentageEl = document.getElementById("loading-percentage");
+            const progressBar = document.getElementById("progress-bar");
+
+            const interval = setInterval(() => {
+                progress++;
+                percentageEl.innerText = progress + "%";
+                progressBar.style.width = progress + "%";
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById("modal-step-loading").classList.add("hidden");
+                        document.getElementById("modal-step-success").classList.remove("hidden");
+                    }, 200);
+                }
+            }, 20);
+        }
+
+        // Tekan NO di Halaman Lelah (Produk 67)
+        function handleNoLelah() {
+            cooldownEndTime = Date.now() + 60000; // Penalti 1 Menit
+            document.getElementById("page-lelah").classList.add("hidden");
+            document.getElementById("page-lelah").classList.remove("flex");
+
+            alert("Anda kembali ke halaman utama! Penalti 1 menit aktif. Silakan tunggu 1 menit jika ingin melakukan pembayaran lagi.");
+        }
+
+        // Tekan YES di Halaman Lelah -> Masuk Halaman Kuis Soal Matematika
+        function handleYesLelah() {
+            document.getElementById("page-lelah").classList.add("hidden");
+            document.getElementById("page-lelah").classList.remove("flex");
+
+            document.getElementById("page-kuis").classList.remove("hidden");
+            document.getElementById("page-kuis").classList.add("flex");
+        }
+
+        // Helper untuk menghitung jumlah kata secara akurat
+        function countWords(str) {
+            return str.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        // Validasi Rahasia: Setiap Soal WAJIB Minimal 25 Kata
+        function validateQuiz() {
+            const q1 = document.getElementById("ans-1").value;
+            const q2 = document.getElementById("ans-2").value;
+            const q3 = document.getElementById("ans-3").value;
+            const q4 = document.getElementById("ans-4").value;
+            const q5 = document.getElementById("ans-5").value;
+
+            const btn = document.getElementById("btn-selanjutnya");
+            const hint = document.getElementById("quiz-hint");
+
+            const q1Valid = countWords(q1) >= 25;
+            const q2Valid = countWords(q2) >= 25;
+            const q3Valid = countWords(q3) >= 25;
+            const q4Valid = countWords(q4) >= 25;
+            const q5Valid = countWords(q5) >= 25;
+
+            if (q1Valid && q2Valid && q3Valid && q4Valid && q5Valid) {
+                btn.disabled = false;
+                btn.className = "w-full md:w-1/2 py-4 rounded-2xl font-black text-lg transition shadow-xl bg-yellow-400 hover:bg-yellow-300 text-purple-950 cursor-pointer active:scale-95";
+                hint.innerText = "✨ Semua pertanyaan sudah diisi dengan cukup! Silakan tekan SELANJUTNYA.";
+                hint.className = "text-xs text-green-400 font-bold mt-2";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full md:w-1/2 py-4 rounded-2xl font-black text-lg transition shadow-xl bg-gray-600 text-gray-400 cursor-not-allowed";
+                hint.innerText = "*Isi semua 5 jawaban di atas agar tombol SELANJUTNYA dapat ditekan.";
+                hint.className = "text-xs text-yellow-400/80 mt-2 italic";
+            }
+        }
+
+        // Saat Tombol SELANJUTNYA Ditekan -> Buka Halaman PILIH PAKET
+        function handleFinishQuiz() {
+            document.getElementById("page-kuis").classList.add("hidden");
+            document.getElementById("page-kuis").classList.remove("flex");
+
+            document.getElementById("page-paket").classList.remove("hidden");
+            document.getElementById("page-paket").classList.add("flex");
+        }
+
+        // Memilih Paket & Otomatis Memutar Audio (Autoplay dari Event Click)
+        function selectPackage(packageName) {
+            selectedPackageName = packageName;
+            currentAudioCount = 0;
+
+            if (packageName === 'PRO') requiredAudioLoops = 3;
+            else if (packageName === 'PREMIUM') requiredAudioLoops = 5;
+            else if (packageName === 'ULTIMATE') requiredAudioLoops = 7;
+
+            // Sembunyikan Halaman Pilih Paket
+            document.getElementById("page-paket").classList.add("hidden");
+            document.getElementById("page-paket").classList.remove("flex");
+
+            // Tampilkan Halaman Pemutar Audio
+            document.getElementById("audio-package-title").innerText = `PAKET ${packageName}`;
+            document.getElementById("audio-counter-text").innerText = `0 / ${requiredAudioLoops}`;
+            document.getElementById("audio-status-text").innerText = "Memutar...";
+            document.getElementById("audio-progress-bar").style.width = "0%";
+            document.getElementById("btn-continue").classList.add("hidden");
+
+            document.getElementById("page-audio").classList.remove("hidden");
+            document.getElementById("page-audio").classList.add("flex");
+
+            // Jalankan Autoplay Audio
+            bgAudio.currentTime = 0;
+            bgAudio.playbackRate = 1.0;
+            bgAudio.play().catch(err => {
+                console.log("Autoplay memerlukan interaksi awal:", err);
+            });
+        }
+
+        // Proteksi Audio (Kecepatan dan Penguncian Progress)
+        bgAudio.addEventListener("timeupdate", () => {
+            if (bgAudio.duration) {
+                const pct = (bgAudio.currentTime / bgAudio.duration) * 100;
+                document.getElementById("audio-progress-bar").style.width = pct + "%";
+            }
+        });
+
+        bgAudio.addEventListener("ratechange", () => {
+            if (bgAudio.playbackRate !== 1.0) {
+                bgAudio.playbackRate = 1.0; // Mengunci kecepatan
+            }
+        });
+
+        // Event saat Audio Selesai Diputar 1x
+        bgAudio.addEventListener("ended", () => {
+            currentAudioCount++;
+            document.getElementById("audio-counter-text").innerText = `${currentAudioCount} / ${requiredAudioLoops}`;
+
+            if (currentAudioCount < requiredAudioLoops) {
+                // Lanjutkan Pemutaran Berikutnya Otomatis
+                bgAudio.currentTime = 0;
+                bgAudio.play();
+            } else {
+                // Semua Pemutaran Selesai
+                document.getElementById("audio-status-text").innerText = "Selesai!";
+                document.getElementById("audio-progress-bar").style.width = "100%";
+
+                const playBtn = document.getElementById("btn-play-audio");
+                playBtn.innerText = "✓";
+                playBtn.className = "w-14 h-14 bg-green-500 text-white rounded-xl flex items-center justify-center text-2xl font-black shadow shrink-0";
+
+                // Tampilkan Tombol CONTINUE
+                document.getElementById("btn-continue").classList.remove("hidden");
+            }
+        });
+
+        // Saat Tombol CONTINUE Ditekan -> Pindah ke Halaman BERHASIL
+        function handleContinueAudio() {
+            bgAudio.pause();
+            bgAudio.currentTime = 0;
+
+            document.getElementById("page-audio").classList.add("hidden");
+            document.getElementById("page-audio").classList.remove("flex");
+
+            document.getElementById("page-berhasil").classList.remove("hidden");
+            document.getElementById("page-berhasil").classList.add("flex");
+        }
+
+        // Jalankan awal
+        renderProducts();
+    </script>
+</body>
+</html>
